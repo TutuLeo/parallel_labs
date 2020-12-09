@@ -7,9 +7,12 @@
 
 int toInt(char c)
 {
-  if(int(c) != 0){
+  if (int(c) != 0)
+  {
     return int(c) - 48;
-  } else {
+  }
+  else
+  {
     return 0;
   }
 }
@@ -26,7 +29,7 @@ bool check3(char *A, int length)
   {
     sum += toInt(A[i]);
   }
-  
+
   return !(sum % 3);
 }
 
@@ -54,17 +57,77 @@ bool check7(char *A, int length)
     int subSum = 0;
     for (size_t j = 0; j < 3; j++)
     {
-      subSum += toInt(A[i]) * pow(10,j);
+      subSum += toInt(A[i]) * pow(10, j);
       i--;
     }
-    if(isPositive){
+    if (isPositive)
+    {
       totalSum += subSum;
-    } else {
+    }
+    else
+    {
       totalSum -= subSum;
     }
     isPositive = !isPositive;
   }
-  
+  if (totalSum < 7)
+  {
+    return false;
+  }
+  return !(totalSum % 7);
+}
+
+bool check7parallel(char *A, int length)
+{
+  int totalSum = 0;
+
+  int subSumArrSize = length / 3;
+  if (length % 3)
+  {
+    subSumArrSize++;
+  }
+  int *subSumArr = new int[subSumArrSize];
+
+  if (omp_get_max_threads() < subSumArrSize)
+  {
+    omp_set_num_threads(omp_get_max_threads());
+  }
+  else
+  {
+    omp_set_num_threads(subSumArrSize);
+  }
+
+  // #pragma omp parallel for
+  for (int i = 0; i < subSumArrSize; i++)
+  {
+    subSumArr[i] = 0;
+    for (int j = 0; j < 3; j++)
+    {
+      if ((length - 1 - i * 3 - j) >= 0)
+      {
+        subSumArr[i] += toInt(A[length - 1 - i * 3 - j]) * pow(10, j);
+      }
+    }
+  }
+
+  bool isPositive = true;
+  for (int i = 0; i < subSumArrSize; i++)
+  {
+    if (isPositive)
+    {
+      totalSum += subSumArr[i];
+    }
+    else
+    {
+      totalSum -= subSumArr[i];
+    }
+    isPositive = !isPositive;
+  }
+  if (totalSum < 7)
+  {
+    return false;
+  }
+
   return !(totalSum % 7);
 }
 
@@ -106,23 +169,20 @@ int main(int argc, char **argv)
     // read data as a block:
     inputStream.read(A, length);
   }
-
-  std::cout << check2(A, length) << std::endl;
-  std::cout << check3(A, length) << std::endl;
-  std::cout << check4(A, length) << std::endl;
-  std::cout << check5(A, length) << std::endl;
-  std::cout << check6(A, length) << std::endl;
-  std::cout << check7(A, length) << std::endl;
-  std::cout << check8(A, length) << std::endl;
-  std::cout << check9(A, length) << std::endl;
-  std::cout << check10(A, length) << std::endl;
-
   std::ofstream resultFile;
   resultFile.open("result");
-  for (size_t i = 0; i < length; i++)
-  {
-    resultFile << A[i];
-  }
+
+  resultFile << "% 2:          " << check2(A, length) << std::endl;
+  resultFile << "% 3:          " << check3(A, length) << std::endl;
+  resultFile << "% 4:          " << check4(A, length) << std::endl;
+  resultFile << "% 5:          " << check5(A, length) << std::endl;
+  resultFile << "% 6:          " << check6(A, length) << std::endl;
+  resultFile << "% 7:          " << check7(A, length) << std::endl;
+  resultFile << "% 7 parallel: " << check7parallel(A, length) << std::endl;
+  resultFile << "% 8:          " << check8(A, length) << std::endl;
+  resultFile << "% 9:          " << check9(A, length) << std::endl;
+  resultFile << "% 10:         " << check10(A, length) << std::endl;
+
   resultFile.close();
 
   return 0;
