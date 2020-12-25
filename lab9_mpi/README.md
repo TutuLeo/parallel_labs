@@ -1,7 +1,3 @@
- mpic++ -o lab9 lab9.cpp
- 
- mpirun -np 2 --oversubscribe lab9
-
 # Lab9. MPI
 ## Задание (вариант 12):
 Дан вектор чисел
